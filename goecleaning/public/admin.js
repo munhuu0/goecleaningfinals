@@ -226,7 +226,7 @@ async function uploadPhoto(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
     try {
-        const res = await fetch(API_BASE_URL + '/api/portfolio', { method: 'POST', body: formData });
+        const res = await fetch(API_BASE_URL + '/goecleaning/uploads/portfolio', { method: 'POST', body: formData });
         if (res.ok) { 
             alert('Photo uploaded!'); 
             e.target.reset(); 
@@ -259,3 +259,4 @@ function translate(type) {
     return dict[type] || type;
 
 }
+
