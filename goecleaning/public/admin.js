@@ -185,7 +185,7 @@ async function deleteOrder(id) {
 // Album Logic
 async function fetchAlbums() {
     try {
-        const res = await fetch(API_BASE_URL + '/api/albums');
+        const res = await fetch(API_BASE_URL + '/api/portfolio');
         const albums = await res.json();
         const container = document.getElementById('admin-album-list');
         container.innerHTML = '';
@@ -209,7 +209,7 @@ async function fetchAlbums() {
                 <img src="${imageUrl}" style="width:100%; height:150px; object-fit:cover; border-radius:5px; margin-bottom:10px;">
                 <div style="font-weight:bold; font-size:0.9rem;">${item.title}</div>
                 <div style="font-size:0.8rem; color:#666; margin-bottom:10px;">${item.description || ''}</div>
-                <button class="btn btn-danger" onclick="deleteAlbum('${item._id}')" style="width:100%;">Delete</button>
+                <button class="btn btn-danger" onclick="deleteAlbum('${item.id}')" style="width:100%;">Delete</button>
             `;
             container.appendChild(div);
         });
@@ -226,23 +226,32 @@ async function uploadPhoto(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
     try {
-        const res = await fetch(API_BASE_URL + '/goecleaning/uploads/portfolio', { method: 'POST', body: formData });
+        const res = await fetch(API_BASE_URL + '/api/portfolio', { 
+            method: 'POST', 
+            body: formData,
+            headers: getAuthHeaders()
+        });
         if (res.ok) { 
             alert('Photo uploaded!'); 
             e.target.reset(); 
             fetchAlbums(); 
         } else { 
-            alert('Upload failed'); 
+            const errorData = await res.json();
+            alert('Upload failed: ' + (errorData.message || 'Unknown error'));
         }
     } catch (err) { 
-        console.error(err); 
+        console.error('Upload error:', err); 
+        alert('Upload failed. Please try again.');
     }
 }
 
 async function deleteAlbum(id) {
     if(!confirm('Delete this photo?')) return;
     try {
-        const res = await fetch(`/api/albums/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/portfolio/${id}`, { 
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
         if (res.ok) {
             fetchAlbums();
         } else {
@@ -257,6 +266,4 @@ async function deleteAlbum(id) {
 function translate(type) {
     const dict = { 'apartment': 'Айл гэр', 'construction': 'Барилгын дараах', 'office': 'Оффис', 'carpet': 'Хивс', 'sofa': 'Буйдан', 'planned': 'Төлөвлөгөөт' };
     return dict[type] || type;
-
 }
-
