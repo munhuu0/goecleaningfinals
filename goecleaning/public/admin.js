@@ -226,7 +226,7 @@ async function uploadPhoto(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
     try {
-        const res = await fetch(API_BASE_URL + '/api/albums', { method: 'POST', body: formData });
+        const res = await fetch(API_BASE_URL + '/api/portfolio', { method: 'POST', body: formData });
         if (res.ok) { 
             alert('Photo uploaded!'); 
             e.target.reset(); 
@@ -257,4 +257,5 @@ async function deleteAlbum(id) {
 function translate(type) {
     const dict = { 'apartment': 'Айл гэр', 'construction': 'Барилгын дараах', 'office': 'Оффис', 'carpet': 'Хивс', 'sofa': 'Буйдан', 'planned': 'Төлөвлөгөөт' };
     return dict[type] || type;
+
 }
