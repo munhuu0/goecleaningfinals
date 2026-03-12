@@ -117,9 +117,14 @@ const requireAuth = (req, res, next) => {
     return res.status(401).json({ message: 'Authentication required' });
   }
   
-  // For now, we'll use a simple token check (in production, use proper session validation)
+  // For production, use proper session validation
+  // For now, we'll use a simple token check that matches admin.js
   const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Goe1119!';
-  if (token !== crypto.createHash('sha256').update(ADMIN_PASSWORD).digest('hex')) {
+  
+  // Create a simple token validation (same as admin login)
+  const expectedToken = crypto.createHash('sha256').update(ADMIN_PASSWORD).digest('hex');
+  
+  if (token !== expectedToken) {
     return res.status(401).json({ message: 'Invalid authentication token' });
   }
   
@@ -129,6 +134,12 @@ const requireAuth = (req, res, next) => {
 // POST new portfolio item with images (admin only, protected)
 router.post('/', requireAuth, upload.array('images', 10), async (req, res) => {
   try {
+    console.log('Portfolio upload request:', {
+      body: req.body,
+      files: req.files ? req.files.map(f => ({ originalname: f.originalname, size: f.size })) : null,
+      headers: req.headers
+    });
+    
     // Handle both Mongolian and English field names
     const title = req.body.title || req.body['Гарчиг'];
     const description = req.body.description || req.body['Тайлбар'];
@@ -160,6 +171,8 @@ router.post('/', requireAuth, upload.array('images', 10), async (req, res) => {
       }));
     }
     
+    console.log('Creating portfolio item:', { title, description, category, featured, order, imageCount: images.length });
+    
     const portfolio = await Portfolio.create({
       title: title.trim(),
       description: description ? description.trim() : null,
@@ -173,6 +186,12 @@ router.post('/', requireAuth, upload.array('images', 10), async (req, res) => {
     res.status(201).json(portfolio);
   } catch (error) {
     console.error('Portfolio upload error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      body: req.body,
+      files: req.files
+    });
     
     // Clean up uploaded files on error
     if (req.files && req.files.length > 0) {
@@ -183,7 +202,7 @@ router.post('/', requireAuth, upload.array('images', 10), async (req, res) => {
       });
     }
     
-    res.status(400).json({ 
+    res.status(500).json({ 
       message: 'Error creating portfolio item', 
       error: error.message 
     });
